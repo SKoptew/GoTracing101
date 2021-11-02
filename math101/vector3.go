@@ -118,6 +118,10 @@ func Cross(a Vec3, b Vec3) Vec3 {
 		Z: a.X*b.Y - a.Y*b.X,
 	}
 }
+
+func Lerp(a Vec3, b Vec3, t float64) Vec3 {
+	return Add(MulC(a, 1.0 - t), MulC(b, t))
+}
 //-------------------------------------------------------------
 
 func (v Vec3) String() string {
