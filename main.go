@@ -1,65 +1,46 @@
 package main
 
 import (
-	. "gotracing101/math101"
-	"image"
-	"image/color"
+	"gotracing101/rendering"
+
+	"flag"
+	"fmt"
 	"image/png"
 	"os"
 )
 
-type Ray struct {
-	origin    Vec3
-	direction Vec3
-}
-
-func TraceRay(ray *Ray) Vec3 {
-	return Lerp(
-		Vec3{0.05, 0.05, 0.2},
-		Vec3{0.7, 0.8, 0.9},
-		0.5*(1.0 + ray.direction.Y))
-}
-
-func convertColor(c Vec3) color.RGBA {
-	return color.RGBA{
-		R: uint8(c.X * 255.99),
-		G: uint8(c.Y * 255.99),
-		B: uint8(c.Z * 255.99),
-		A: 0xff,
+func clamp(x, min, max int) int {
+	if x < min {
+		x = min
 	}
-}
-
-func RenderImage(width int, height int) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
-
-	invWidth, invHeight := 1.0/float64(width), 1.0/float64(height)
-	aspect := float64(height) * invWidth
-
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			u := (float64(x) + 0.5) * invWidth
-			v := (float64(y) + 0.5) * invHeight
-
-			ray := Ray {
-				origin: Vec3{},
-				direction: Vec3{
-					X: 2.0*u - 1.0,
-					Y: (2.0*v - 1.0) * aspect,
-					Z: -2.0,
-				},
-			}
-
-			col := TraceRay(&ray)
-			img.Set(x, y, convertColor(col))
-		}
+	if x > max {
+		x = max
 	}
-
-	return img
+	return x
 }
 
 func main() {
-	img := RenderImage(512, 256)
+	widthFlag  := flag.Int("width",  1024, "image width")
+	heightFlag := flag.Int("height", 768, "image height")
+	fnameFlag  := flag.String("filename", "out", "out file name (without extension, forced to .png)")
 
-	file, _ := os.Create("out.png")
-	png.Encode(file, img)
+	flag.Parse()
+
+	width  := clamp(*widthFlag, 1, 2048)
+	height := clamp(*heightFlag, 1, 2048)
+	fname  := *fnameFlag + ".png"
+
+	fmt.Printf("rendering %vx%v image...\n", width, height)
+	img := rendering.RenderImage(width, height)
+
+	fmt.Printf("saving to %s\n", fname)
+	file, err := os.Create(fname)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := png.Encode(file, img); err != nil {
+		fmt.Println(err)
+	}
 }
