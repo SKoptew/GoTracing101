@@ -6,25 +6,35 @@ import (
 )
 
 type Sphere struct {
-	Center Vec3
-	Radius float64
+	center    Vec3
+	radius    float64
+	radiusInv float64
+}
+
+func NewSphere(center Vec3, radius float64) *Sphere {
+	sphere := Sphere{
+		center:    center,
+		radius:    radius,
+		radiusInv: 1.0 / radius,
+	}
+	return &sphere
 }
 
 
-func (sphere *Sphere) Hit(ray *Ray, tMin float64, tMax float64) (*HitRecord, bool) {
-	oc    := Sub(ray.Origin, sphere.Center)
+func (sphere *Sphere) Hit(ray *Ray, tMin float64, tMax float64) *HitRecord {
+	oc    := Sub(ray.Origin, sphere.center)
 	halfB := Dot(ray.Direction, oc)
-	c     := Dot(oc, oc) - sphere.Radius*sphere.Radius
+	c     := Dot(oc, oc) - sphere.radius*sphere.radius
 	discr := halfB*halfB - c				// 1/4 * discriminant
 
-	intersect := func(t float64) (*HitRecord, bool) {
+	intersect := func(t float64) *HitRecord {
 		hitPoint := ray.GetPointAt(t)
 		hit := HitRecord{
 			T:   t,
 			Pt:  hitPoint,
-			Nrm: DivC(Sub(hitPoint, sphere.Center), sphere.Radius), // $$$ replace to MulC(invR)
+			Nrm: MulC(Sub(hitPoint, sphere.center), sphere.radiusInv),
 		}
-		return &hit, true
+		return &hit
 	}
 
 	if discr > 0 {
@@ -42,5 +52,5 @@ func (sphere *Sphere) Hit(ray *Ray, tMin float64, tMax float64) (*HitRecord, boo
 			return intersect(t)
 		}
 	}
-	return nil, false
+	return nil
 }

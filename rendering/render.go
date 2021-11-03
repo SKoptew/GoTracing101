@@ -10,7 +10,7 @@ import (
 func TraceRay(scene scene.Hitable, ray *scene.Ray) Vec3 {
 	ray.Direction.Normalize()
 
-	if hit, isHit := scene.Hit(ray, 0.0001, 200); isHit {
+	if hit := scene.Hit(ray, 0.0001, 200); hit != nil {
 		return Add(MulC(hit.Nrm, 0.5), Vec3{0.5, 0.5, 0.5})
 	}
 
@@ -37,7 +37,8 @@ func RenderImage(width int, height int) image.Image {
 	aspect := float64(height) * invWidth
 
 	//-- test simple scene
-	testSphere := scene.Sphere{Center: Vec3{0, 0, -5}, Radius: 1.0}
+	//testSphere := scene.Sphere{Center: Vec3{0, 0, -5}, Radius: 1.0}
+	testSphere := scene.NewSphere(Vec3{0, 0, -5}, 1.0)
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
@@ -53,7 +54,7 @@ func RenderImage(width int, height int) image.Image {
 				},
 			}
 
-			col := TraceRay(&testSphere, &ray)
+			col := TraceRay(testSphere, &ray)
 			img.Set(x, y, convertColor(col))
 		}
 	}

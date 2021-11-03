@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image/png"
 	"os"
+	"time"
 )
 
 func clamp(x, min, max int) int {
@@ -31,9 +32,11 @@ func main() {
 	fname  := *fnameFlag + ".png"
 
 	fmt.Printf("rendering %vx%v image...\n", width, height)
+	startTime := time.Now()
 	img := rendering.RenderImage(width, height)
+	fmt.Printf("done for %s\n", time.Since(startTime))
 
-	fmt.Printf("saving to %s\n", fname)
+	fmt.Printf("saving to %s...\n", fname)
 	file, err := os.Create(fname)
 	if err != nil {
 		fmt.Println(err)
