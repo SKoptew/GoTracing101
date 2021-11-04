@@ -1,7 +1,9 @@
 package main
 
 import (
+	. "gotracing101/math101"
 	"gotracing101/rendering"
+	"gotracing101/scene"
 
 	"flag"
 	"fmt"
@@ -10,30 +12,15 @@ import (
 	"time"
 )
 
-func clamp(x, min, max int) int {
-	if x < min {
-		x = min
-	}
-	if x > max {
-		x = max
-	}
-	return x
-}
-
 func main() {
-	widthFlag  := flag.Int("width",  1024, "image width")
-	heightFlag := flag.Int("height", 768, "image height")
-	fnameFlag  := flag.String("filename", "out", "out file name (without extension, forced to .png)")
+	width, height, fname := ParseFlags()
 
-	flag.Parse()
-
-	width  := clamp(*widthFlag, 1, 2048)
-	height := clamp(*heightFlag, 1, 2048)
-	fname  := *fnameFlag + ".png"
+	cam := CreateCamera(float64(width)/float64(height))
+	sc  := CreateTestScene()
 
 	fmt.Printf("rendering %vx%v image...\n", width, height)
 	startTime := time.Now()
-	img := rendering.RenderImage(width, height)
+	img := rendering.RenderImage(sc, cam, width, height)
 	fmt.Printf("done for %s\n", time.Since(startTime))
 
 	fmt.Printf("saving to %s...\n", fname)
@@ -46,4 +33,49 @@ func main() {
 	if err := png.Encode(file, img); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func ParseFlags() (width, height int, fname string) {
+	widthFlag  := flag.Int("width",  1024, "image width")
+	heightFlag := flag.Int("height", 768, "image height")
+	fnameFlag  := flag.String("filename", "out", "out file name (without extension, forced to .png)")
+
+	flag.Parse()
+
+	width  = clamp(*widthFlag, 1, 4096)
+	height = clamp(*heightFlag, 1, 4096)
+	fname  = *fnameFlag + ".png"
+
+	return
+}
+
+func CreateTestScene() *scene.Scene {
+	sc := scene.NewScene()
+
+	sc.Add(scene.NewSphere(Vec3{ 0, -100.5, -1}, 100.0))
+	sc.Add(scene.NewSphere(Vec3{ 0, 0, -1}, 0.5))
+	sc.Add(scene.NewSphere(Vec3{-1, 0, -1}, 0.4))
+	sc.Add(scene.NewSphere(Vec3{ 1, 0, -1}, 0.4))
+
+	return sc
+}
+
+func CreateCamera(aspect float64) *rendering.Camera {
+	cam := rendering.NewCamera(aspect)
+	cam.Set(
+		Vec3{X: 0, Y: 0, Z: 0},
+		Vec3{X: 0, Y: 0, Z: -1},
+		60.0)
+
+	return cam
+}
+
+func clamp(x, min, max int) int {
+	if x < min {
+		x = min
+	}
+	if x > max {
+		x = max
+	}
+	return x
 }

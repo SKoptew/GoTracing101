@@ -30,32 +30,18 @@ func convertColor(c Vec3) color.RGBA {
 	}
 }
 
-func RenderImage(width int, height int) image.Image {
+func RenderImage(sc scene.Hitable, cam *Camera, width int, height int) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	invWidth, invHeight := 1.0/float64(width), 1.0/float64(height)
-	aspect := float64(height) * invWidth
-
-	//-- test simple scene
-	//testSphere := scene.Sphere{Center: Vec3{0, 0, -5}, Radius: 1.0}
-	testSphere := scene.NewSphere(Vec3{0, 0, -5}, 1.0)
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			u := (float64(x) + 0.5) * invWidth
-			v := (float64(y) + 0.5) * invHeight
+			u :=       (float64(x) + 0.5) * invWidth
+			v := 1.0 - (float64(y) + 0.5) * invHeight
 
-			ray := scene.Ray {
-				Origin: Vec3{},
-				Direction: Vec3{
-					X: 2.0*u - 1.0,
-					Y: (2.0*v - 1.0) * aspect,
-					Z: -2.0,
-				},
-			}
-
-			col := TraceRay(testSphere, &ray)
-			img.Set(x, y, convertColor(col))
+			ray := cam.GetRay(u, v)
+			img.Set(x, y, convertColor(TraceRay(sc, ray)))
 		}
 	}
 
