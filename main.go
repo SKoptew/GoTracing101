@@ -13,14 +13,14 @@ import (
 )
 
 func main() {
-	width, height, fname := ParseFlags()
+	width, height, spp, fname := ParseFlags()
 
 	cam := CreateCamera(float64(width)/float64(height))
 	sc  := CreateTestScene()
 
-	fmt.Printf("rendering %vx%v image...\n", width, height)
+	fmt.Printf("rendering %vx%v image (%v samples per pixel)...\n", width, height, spp)
 	startTime := time.Now()
-	img := rendering.RenderImage(sc, cam, width, height)
+	img := rendering.RenderImage(sc, cam, width, height, spp)
 	fmt.Printf("done for %s\n", time.Since(startTime))
 
 	fmt.Printf("saving to %s...\n", fname)
@@ -35,15 +35,17 @@ func main() {
 	}
 }
 
-func ParseFlags() (width, height int, fname string) {
+func ParseFlags() (width, height, spp int, fname string) {
 	widthFlag  := flag.Int("width",  1024, "image width")
 	heightFlag := flag.Int("height", 768, "image height")
+	sppFlag    := flag.Int("spp", 32, "samples per pixel")
 	fnameFlag  := flag.String("filename", "out", "out file name (without extension, forced to .png)")
 
 	flag.Parse()
 
 	width  = clamp(*widthFlag, 1, 4096)
 	height = clamp(*heightFlag, 1, 4096)
+	spp    = clamp(*sppFlag, 1, 1024)
 	fname  = *fnameFlag + ".png"
 
 	return

@@ -5,6 +5,7 @@ import (
 	"gotracing101/scene"
 	"image"
 	"image/color"
+	"math/rand"
 )
 
 func TraceRay(scene scene.Hitable, ray *scene.Ray) Vec3 {
@@ -30,18 +31,28 @@ func convertColor(c Vec3) color.RGBA {
 	}
 }
 
-func RenderImage(sc scene.Hitable, cam *Camera, width int, height int) image.Image {
+func RenderImage(sc scene.Hitable, cam *Camera, width int, height int, spp int) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	invWidth, invHeight := 1.0/float64(width), 1.0/float64(height)
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			u :=       (float64(x) + 0.5) * invWidth
-			v := 1.0 - (float64(y) + 0.5) * invHeight
+			color := Vec3{}
 
-			ray := cam.GetRay(u, v)
-			img.Set(x, y, convertColor(TraceRay(sc, ray)))
+			for sampleNum := 0; sampleNum < spp; sampleNum++ {
+				u :=       (float64(x) + rand.Float64()) * invWidth	// center value: (x + 0.5) / width; += -0.5...0.5 half-pixel scattering for multisampling
+				v := 1.0 - (float64(y) + rand.Float64()) * invHeight
+
+				ray := cam.GetRay(u, v)
+				color.Add(TraceRay(sc, ray))
+			}
+
+			if spp > 1 {
+				color.DivC(float64(spp))
+			}
+
+			img.Set(x, y, convertColor(color))
 		}
 	}
 
