@@ -5,6 +5,10 @@ import (
 	"math/rand"
 )
 
+func Rand01(randSrc *rand.Rand) float64 {
+	return randSrc.Float64()
+}
+
 func ToRadians(angle float64) float64 {
 	return angle * math.Pi / 180.0
 }
@@ -13,13 +17,13 @@ func ToDegrees(angle float64) float64 {
 	return angle * 180.0 / math.Pi
 }
 
-func RandUnitVectorSphere() Vec3 {
+func RandUnitVectorSphere(randSrc *rand.Rand) Vec3 {
 	//-- Marsaglia, George. Choosing a Point from the Surface of a Sphere. Ann. Math. Statist. 43 (1972), no. 2, 645--646
 	for {
 		p := Vec3{
-			X: rand.Float64() * 2.0 - 1.0, // -1..1
-			Y: rand.Float64() * 2.0 - 1.0,
-			Z: rand.Float64() * 2.0 - 1.0,
+			X: Rand01(randSrc) * 2.0 - 1.0, // -1..1
+			Y: Rand01(randSrc) * 2.0 - 1.0,
+			Z: Rand01(randSrc) * 2.0 - 1.0,
 		}
 
 		if length2 := p.Length2(); length2 < 1.0 {
@@ -28,8 +32,8 @@ func RandUnitVectorSphere() Vec3 {
 	}
 }
 
-func RandUnitVectorHemisphere(normal Vec3) Vec3 {
-	v := RandUnitVectorSphere()
+func RandUnitVectorHemisphere(normal Vec3, randSrc *rand.Rand) Vec3 {
+	v := RandUnitVectorSphere(randSrc)
 	if Dot(v, normal) < 0.0 {
 		v.Negate()
 	}

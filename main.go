@@ -38,7 +38,7 @@ func main() {
 func ParseFlags() (width, height, spp, maxBounces int, fname string) {
 	widthFlag      := flag.Int("width",  1024, "image width")
 	heightFlag     := flag.Int("height", 768, "image height")
-	sppFlag        := flag.Int("spp", 16, "samples per pixel")
+	sppFlag        := flag.Int("spp", 32, "samples per pixel")
 	maxBouncesFlag := flag.Int("bounces", 32, "max bounces per path")
 	fnameFlag      := flag.String("filename", "out", "out file name (without extension, forced to .png)")
 
