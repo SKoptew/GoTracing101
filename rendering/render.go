@@ -8,18 +8,34 @@ import (
 	"math/rand"
 )
 
-func TraceRay(scene scene.Hitable, ray *scene.Ray) Vec3 {
+func TraceRay(scene scene.Hitable, ray *scene.Ray, maxBounces int) Vec3 {
+	accAttenuation := Vec3{1, 1, 1}
 	ray.Direction.Normalize()
 
-	if hit := scene.Hit(ray, 0.0001, 200); hit != nil {
-		return Add(MulC(hit.Nrm, 0.5), Vec3{0.5, 0.5, 0.5})
+	for bounce := 0; bounce < maxBounces; bounce++ {
+		if hit := scene.Hit(ray, 0.0001, 200); hit != nil {
+			// ray always scattered again (no absorbtion/emission)
+			// grey diffuse material, albedo = 0.5
+			accAttenuation.MulC(0.5)
+
+			ray.Origin    = hit.Pt
+			ray.Direction = RandUnitVectorHemisphere(hit.Nrm)
+		} else {
+			break
+		}
 	}
 
-	// no hit, return sky imitation
-	return Lerp(
-		Vec3{0.05, 0.05, 0.2},
-		Vec3{0.7, 0.8, 0.9},
+	// ray reaches sky
+	return MissShader(ray, accAttenuation)
+}
+
+func MissShader(ray *scene.Ray, accAttenuation Vec3) Vec3 {
+	skyColor := Lerp(
+		Vec3{1.0, 1.0, 1.0},
+		Vec3{0.5, 0.7, 1.0},
 		0.5*(1.0 + ray.Direction.Y))
+
+	return Mul(accAttenuation, skyColor)
 }
 
 func convertColor(c Vec3) color.RGBA {
@@ -31,7 +47,7 @@ func convertColor(c Vec3) color.RGBA {
 	}
 }
 
-func RenderImage(sc scene.Hitable, cam *Camera, width int, height int, spp int) image.Image {
+func RenderImage(sc scene.Hitable, cam *Camera, width, height, spp, maxBounces int) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	invWidth, invHeight := 1.0/float64(width), 1.0/float64(height)
@@ -45,13 +61,14 @@ func RenderImage(sc scene.Hitable, cam *Camera, width int, height int, spp int) 
 				v := 1.0 - (float64(y) + rand.Float64()) * invHeight
 
 				ray := cam.GetRay(u, v)
-				color.Add(TraceRay(sc, ray))
+				color.Add(TraceRay(sc, ray, maxBounces))
 			}
 
 			if spp > 1 {
 				color.DivC(float64(spp))
 			}
 
+			color = LinearToSrgb(color)
 			img.Set(x, y, convertColor(color))
 		}
 	}

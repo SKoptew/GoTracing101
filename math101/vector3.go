@@ -127,11 +127,3 @@ func Lerp(a Vec3, b Vec3, t float64) Vec3 {
 func (v Vec3) String() string {
 	return fmt.Sprintf("[%v, %v, %v]", v.X, v.Y, v.Z)
 }
-
-func ToRadians(angle float64) float64 {
-	return angle * math.Pi / 180.0
-}
-
-func ToDegrees(angle float64) float64 {
-	return angle * 180.0 / math.Pi
-}
