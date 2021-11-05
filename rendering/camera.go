@@ -51,7 +51,7 @@ func (cam *Camera) Set(origin Vec3, direction Vec3, fov float64) {
 	cam.vert      = Cross(cam.horiz, direction)
 
 	//-- UV basis
-	focusPlaneHeight := math.Tan(ToRadians(fov))
+	focusPlaneHeight := 2.0 * math.Tan(ToRadians(fov) * 0.5)
 	focusPlaneWidth  := focusPlaneHeight * cam.aspect
 
 	cam.uvHoriz = MulC(cam.horiz, focusPlaneWidth)

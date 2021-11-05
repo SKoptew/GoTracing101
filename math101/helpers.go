@@ -22,6 +22,28 @@ func Reflect(v Vec3, n Vec3) Vec3 {
 	return Sub(v, MulC(n, 2*Dot(v, n)))
 }
 
+// ReflectFast : reflected vector. Version with pre-calculated VdotN value
+func ReflectFast(v Vec3, n Vec3, VdotN float64) Vec3 {
+	return Sub(v, MulC(n, 2*VdotN))
+}
+
+// Refract : refracted vector. normal directed from second medium towards first medium
+func Refract(v Vec3, n Vec3, VdotN, ior float64) Vec3 {
+	vTan := MulC(Sub(v, MulC(n, VdotN)), ior)
+
+	if discr := 1 - vTan.Length2(); discr > 0 {
+		vNorm := MulC(n, math.Sqrt(discr))
+		if math.Signbit(VdotN) {
+			vNorm.Negate()
+		}
+
+		return Add(vTan, vNorm)
+	}
+
+	// total internal reflection
+	return Sub(v, MulC(n, 2 * VdotN))
+}
+
 func RandUnitVectorSphere(randSrc *rand.Rand) Vec3 {
 	//-- Marsaglia, George. Choosing a Point from the Surface of a Sphere. Ann. Math. Statist. 43 (1972), no. 2, 645--646
 	for {

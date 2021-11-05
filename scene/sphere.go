@@ -13,7 +13,7 @@ type Sphere struct {
 	material  material.Material
 }
 
-func NewSphere(center Vec3, radius float64, material material.Material) *Sphere {
+func NewSphere(center Vec3, radius float64, material material.Material) Hitable {
 	sphere := Sphere{
 		center:    center,
 		radius:    radius,

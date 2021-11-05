@@ -1,9 +1,8 @@
 package scene
 
 import (
-	. "gotracing101/math101"
-
 	"gotracing101/material"
+	. "gotracing101/math101"
 )
 
 type Hitable interface {
