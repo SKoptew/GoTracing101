@@ -32,3 +32,7 @@ func (mat *Reflective) Scatter(rayIn *Ray, hit *HitRecord, randSrc *rand.Rand) (
 	attenuation = mat.albedo
 	return
 }
+
+func (mat *Reflective) Emitted(hit *HitRecord) (emitted Vec3) {
+	return Vec3{}
+}

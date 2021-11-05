@@ -5,6 +5,7 @@ import (
 	"gotracing101/scene"
 	"image"
 	"image/color"
+	"math"
 	"math/rand"
 	"runtime"
 	"sync"
@@ -20,6 +21,9 @@ func TraceRay(scene scene.Hitable, ray *Ray, maxBounces int, randSrc *rand.Rand)
 			if attenuation, rayOut := hit.Mat.Scatter(ray, hit, randSrc); rayOut != nil {
 				accAttenuation.Mul(attenuation)
 				ray = rayOut
+			} else {
+				// ray hit emissive surface or absorbed
+				return Mul(accAttenuation, hit.Mat.Emitted(hit))
 			}
 		} else {
 			break
@@ -41,9 +45,9 @@ func MissShader(ray *Ray, accAttenuation Vec3) Vec3 {
 
 func convertColor(c Vec3) color.RGBA {
 	return color.RGBA{
-		R: uint8(c.X * 255.99),
-		G: uint8(c.Y * 255.99),
-		B: uint8(c.Z * 255.99),
+		R: uint8(math.Min(c.X, 1.0) * 255.99),
+		G: uint8(math.Min(c.Y, 1.0) * 255.99),
+		B: uint8(math.Min(c.Z, 1.0) * 255.99),
 		A: 0xff,
 	}
 }

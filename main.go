@@ -58,14 +58,15 @@ func CreateTestScene() *scene.Scene {
 	sc := scene.NewScene()
 
 	matGround := material.NewMatLambertian(Vec3{0.1, 0.4, 0.1})
-	matRed    := material.NewMatLambertian(Color(250, 20, 20))
+	//matRed    := material.NewMatLambertian(Color(250, 20, 20))
 	//matMirror := material.NewMatReflective(Vec3{0.95,0.95,0.95}, 0.0)
 	matGold   := material.NewMatReflective(Vec3{0.8,0.6,0.2}, 0.025)
 	matGlass  := material.NewMatRefractive(1.5, Vec3{1,1,1})
+	matGlow   := material.NewMatEmissive(Vec3{1,1,0.01}, 3.0)
 
 	sc.Add(scene.NewSphere(Vec3{ 0, -100.5, -1}, 100.0, matGround))
 
-	sc.Add(scene.NewSphere(Vec3{ 0, 0, -1}, 0.5, matRed))
+	sc.Add(scene.NewSphere(Vec3{ 0, 0, -1}, 0.5, matGlow))
 	sc.Add(scene.NewSphere(Vec3{-1, 0, -1}, 0.5, matGlass))
 	sc.Add(scene.NewSphere(Vec3{ 1, 0, -1}, 0.5, matGold))
 

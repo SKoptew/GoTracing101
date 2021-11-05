@@ -38,6 +38,10 @@ func (mat *Refractive) Scatter(rayIn *Ray, hit *HitRecord, randSrc *rand.Rand) (
 	return
 }
 
+func (mat *Refractive) Emitted(hit *HitRecord) (emitted Vec3) {
+	return Vec3{}
+}
+
 // calc probability of ray reflection
 func getSchlickFresnelApprox(cosine, ior float64) float64 {
 	r0 := (1 - ior) / (1 + ior)

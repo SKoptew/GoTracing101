@@ -21,3 +21,7 @@ func (mat *Lambertian) Scatter(rayIn *Ray, hit *HitRecord, randSrc *rand.Rand) (
 	attenuation = mat.albedo
 	return
 }
+
+func (mat *Lambertian) Emitted(hit *HitRecord) (emitted Vec3) {
+	return Vec3{}
+}
