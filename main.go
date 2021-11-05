@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gotracing101/material"
 	. "gotracing101/math101"
 	"gotracing101/rendering"
 	"gotracing101/scene"
@@ -56,10 +57,16 @@ func ParseFlags() (width, height, spp, maxBounces int, fname string) {
 func CreateTestScene() *scene.Scene {
 	sc := scene.NewScene()
 
-	sc.Add(scene.NewSphere(Vec3{ 0, -100.5, -1}, 100.0))
-	sc.Add(scene.NewSphere(Vec3{ 0, 0, -1}, 0.5))
-	sc.Add(scene.NewSphere(Vec3{-1, 0, -1}, 0.4))
-	sc.Add(scene.NewSphere(Vec3{ 1, 0, -1}, 0.4))
+	matGround := material.NewMatLambertian(Vec3{0.1, 0.4, 0.1})
+	matRed    := material.NewMatLambertian(Color(250, 20, 20))
+	matMirror := material.NewMatReflective(Vec3{0.95,0.95,0.95}, 0.0)
+	matGold   := material.NewMatReflective(Vec3{0.8,0.6,0.2}, 0.025)
+
+	sc.Add(scene.NewSphere(Vec3{ 0, -100.5, -1}, 100.0, matGround))
+
+	sc.Add(scene.NewSphere(Vec3{ 0,  0.0, -1}, 0.5, matMirror))
+	sc.Add(scene.NewSphere(Vec3{-1, -0.2, -1}, 0.3, matRed))
+	sc.Add(scene.NewSphere(Vec3{ 1, -0.2, -1}, 0.3, matGold))
 
 	return sc
 }

@@ -1,6 +1,10 @@
 package scene
 
-import "math"
+import (
+	"gotracing101/material"
+	. "gotracing101/math101"
+	"math"
+)
 
 type Scene struct {
 	surfaces []Hitable
@@ -11,9 +15,9 @@ func NewScene() *Scene {
 	return &scene
 }
 
-func (scene *Scene) Hit(ray *Ray, tMin float64, tMax float64) *HitRecord {
+func (scene *Scene) Hit(ray *Ray, tMin float64, tMax float64) *material.HitRecord {
 
-	var closestHit *HitRecord
+	var closestHit *material.HitRecord
 	closestHitT := math.MaxFloat64
 
 	for _, surface := range scene.surfaces {

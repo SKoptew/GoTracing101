@@ -2,7 +2,6 @@ package rendering
 
 import (
 	. "gotracing101/math101"
-	"gotracing101/scene"
 	"math"
 )
 
@@ -60,8 +59,8 @@ func (cam *Camera) Set(origin Vec3, direction Vec3, fov float64) {
 	cam.uvBottomLeft = Sub(Sub(cam.direction, MulC(cam.uvHoriz, 0.5)), MulC(cam.uvVert, 0.5))
 }
 
-func (cam *Camera) GetRay(u, v float64) *scene.Ray {
-	ray := scene.Ray{
+func (cam *Camera) GetRay(u, v float64) *Ray {
+	ray := Ray{
 		Origin: cam.origin,
 		Direction: Add(Add(cam.uvBottomLeft, MulC(cam.uvHoriz, u)), MulC(cam.uvVert, v)),
 	}

@@ -11,18 +11,16 @@ import (
 	"time"
 )
 
-func TraceRay(scene scene.Hitable, ray *scene.Ray, maxBounces int, randSrc *rand.Rand) Vec3 {
+func TraceRay(scene scene.Hitable, ray *Ray, maxBounces int, randSrc *rand.Rand) Vec3 {
 	accAttenuation := Vec3{1, 1, 1}
 	ray.Direction.Normalize()
 
 	for bounce := 0; bounce < maxBounces; bounce++ {
 		if hit := scene.Hit(ray, 0.0001, 200); hit != nil {
-			// ray always scattered again (no absorption/emission)
-			// grey diffuse material, albedo = 0.5
-			accAttenuation.MulC(0.5)
-
-			ray.Origin    = hit.Pt
-			ray.Direction = RandUnitVectorHemisphere(hit.Nrm, randSrc)
+			if attenuation, rayOut := hit.Mat.Scatter(ray, hit, randSrc); rayOut != nil {
+				accAttenuation.Mul(attenuation)
+				ray = rayOut
+			}
 		} else {
 			break
 		}
@@ -32,7 +30,7 @@ func TraceRay(scene scene.Hitable, ray *scene.Ray, maxBounces int, randSrc *rand
 	return MissShader(ray, accAttenuation)
 }
 
-func MissShader(ray *scene.Ray, accAttenuation Vec3) Vec3 {
+func MissShader(ray *Ray, accAttenuation Vec3) Vec3 {
 	skyColor := Lerp(
 		Vec3{1.0, 1.0, 1.0},
 		Vec3{0.5, 0.7, 1.0},
@@ -66,7 +64,7 @@ func RenderImage(sc *scene.Scene, cam *Camera, width, height, spp, maxBounces in
 	for i := 0; i < workerCount; i++ {
 		go func() {
 			defer wg.Done()
-			RenderWorker(img, width, height, tasks, sc, cam, spp, maxBounces)
+			RenderWorker(tasks, img, width, height, sc, cam, spp, maxBounces)
 		}()
 	}
 
@@ -79,7 +77,7 @@ func RenderImage(sc *scene.Scene, cam *Camera, width, height, spp, maxBounces in
 	return img
 }
 
-func RenderWorker(img *image.RGBA, width, height int, tasks <-chan Task, sc *scene.Scene, cam *Camera, spp, maxBounces int) {
+func RenderWorker(tasks <-chan Task, img *image.RGBA, width, height int, sc *scene.Scene, cam *Camera, spp, maxBounces int) {
 	invWidth, invHeight := 1.0/float64(width), 1.0/float64(height)
 
 	randSrc := rand.New(rand.NewSource(time.Now().Unix()))

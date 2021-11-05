@@ -17,6 +17,11 @@ func ToDegrees(angle float64) float64 {
 	return angle * 180.0 / math.Pi
 }
 
+// Reflect : reflected vector. v - n * 2*dot(v, n);
+func Reflect(v Vec3, n Vec3) Vec3 {
+	return Sub(v, MulC(n, 2*Dot(v, n)))
+}
+
 func RandUnitVectorSphere(randSrc *rand.Rand) Vec3 {
 	//-- Marsaglia, George. Choosing a Point from the Surface of a Sphere. Ann. Math. Statist. 43 (1972), no. 2, 645--646
 	for {
@@ -55,4 +60,14 @@ func SrgbToLinear(c Vec3) Vec3 {
 	c.Y = math.Pow(c.Y, gamma)
 	c.Z = math.Pow(c.Z, gamma)
 	return c
+}
+
+func Color(r, g, b int) Vec3 {
+	inv := 1.0 / 255.0
+
+	return Vec3{
+		math.Pow(float64(r) * inv, gamma),
+		math.Pow(float64(g) * inv, gamma),
+		math.Pow(float64(b) * inv, gamma),
+	}
 }
