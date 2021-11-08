@@ -5,6 +5,13 @@ import (
 	"math/rand"
 )
 
+func Sign(x float64) float64 {
+	if math.Signbit(x) {
+		return -1.0
+	}
+	return 1.0
+}
+
 func Rand01(randSrc *rand.Rand) float64 {
 	return randSrc.Float64()
 }
