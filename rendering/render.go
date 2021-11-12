@@ -1,6 +1,7 @@
 package rendering
 
 import (
+	"context"
 	. "gotracing101/math101"
 	"gotracing101/scene"
 	"image"
@@ -56,7 +57,7 @@ type Task struct {
 	y int
 }
 
-func RenderImage(sc *scene.Scene, cam *Camera, width, height, spp, maxBounces int) image.Image {
+func RenderImage(ctx context.Context, sc *scene.Scene, cam *Camera, width, height, spp, maxBounces int) image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 
 	tasks := make(chan Task, height)
@@ -68,7 +69,7 @@ func RenderImage(sc *scene.Scene, cam *Camera, width, height, spp, maxBounces in
 	for i := 0; i < workerCount; i++ {
 		go func() {
 			defer wg.Done()
-			RenderWorker(tasks, img, width, height, sc, cam, spp, maxBounces)
+			RenderWorker(ctx, tasks, img, width, height, sc, cam, spp, maxBounces)
 		}()
 	}
 
@@ -81,28 +82,33 @@ func RenderImage(sc *scene.Scene, cam *Camera, width, height, spp, maxBounces in
 	return img
 }
 
-func RenderWorker(tasks <-chan Task, img *image.RGBA, width, height int, sc *scene.Scene, cam *Camera, spp, maxBounces int) {
+func RenderWorker(ctx context.Context, tasks <-chan Task, img *image.RGBA, width, height int, sc *scene.Scene, cam *Camera, spp, maxBounces int) {
 	invWidth, invHeight := 1.0/float64(width), 1.0/float64(height)
 
 	randSrc := rand.New(rand.NewSource(time.Now().Unix()))
 
 	for task := range tasks {
-		for x := 0; x < width; x++ {
-			color := Vec3{}
-			for sampleNum := 0; sampleNum < spp; sampleNum++ {
-				u :=       (float64(x)      + Rand01(randSrc)) * invWidth // center value: (x + 0.5) / width; += -0.5...0.5 half-pixel scattering for multisampling
-				v := 1.0 - (float64(task.y) + Rand01(randSrc)) * invHeight
+		select {
+		case <- ctx.Done():
+			return
+		default:
+			for x := 0; x < width; x++ {
+				accumColor := Vec3{}
+				for sampleNum := 0; sampleNum < spp; sampleNum++ {
+					u :=       (float64(x)      + Rand01(randSrc)) * invWidth // center value: (x + 0.5) / width; += -0.5...0.5 half-pixel scattering for multisampling
+					v := 1.0 - (float64(task.y) + Rand01(randSrc)) * invHeight
 
-				ray := cam.GetRay(u, v)
-				color.Add(TraceRay(sc, ray, maxBounces, randSrc))
+					ray := cam.GetRay(u, v)
+					accumColor.Add(TraceRay(sc, ray, maxBounces, randSrc))
+				}
+
+				if spp > 1 {
+					accumColor.DivC(float64(spp))
+				}
+
+				accumColor = LinearToSrgb(accumColor)
+				img.Set(x, task.y, convertColor(accumColor))
 			}
-
-			if spp > 1 {
-				color.DivC(float64(spp))
-			}
-
-			color = LinearToSrgb(color)
-			img.Set(x, task.y, convertColor(color))
 		}
 	}
 }

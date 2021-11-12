@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"gotracing101/material"
 	. "gotracing101/math101"
 	"gotracing101/rendering"
 	"gotracing101/scene"
+	"os/signal"
 
 	"flag"
 	"fmt"
@@ -14,16 +16,37 @@ import (
 )
 
 func main() {
-	width, height, spp, maxBounces, fname := ParseFlags()
+	// handle SIGTERM: stop rendering, save rendered part of image
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	termChan := make(chan os.Signal, 1)
+	signal.Notify(termChan, os.Interrupt)
 
+	defer func() {
+		signal.Stop(termChan)
+		cancelFunc()
+	}()
+
+	go func(){
+		select {
+		case <- termChan:
+			fmt.Println("rendering terminated")
+			cancelFunc()
+		case <- ctx.Done():
+		}
+	}()
+
+	// setup rendering parameters
+	width, height, spp, maxBounces, fname := ParseFlags()
 	cam := CreateCamera(float64(width)/float64(height))
 	sc  := CreateTestScene()
 
+	// render image
 	fmt.Printf("rendering %vx%v image (%v samples per pixel, up to %v bounces)...\n", width, height, spp, maxBounces)
 	startTime := time.Now()
-	img := rendering.RenderImage(sc, cam, width, height, spp, maxBounces)
+	img := rendering.RenderImage(ctx, sc, cam, width, height, spp, maxBounces)
 	fmt.Printf("done for %s\n", time.Since(startTime))
 
+	// save image
 	fmt.Printf("saving to %s...\n", fname)
 	file, err := os.Create(fname)
 	if err != nil {
