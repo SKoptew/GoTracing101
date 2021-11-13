@@ -38,8 +38,8 @@ func TraceRay(scene scene.Hitable, ray *Ray, maxBounces int, randSrc *rand.Rand)
 func MissShader(ray *Ray, accAttenuation Vec3) Vec3 {
 	skyColor := Lerp(
 		Vec3{1.0, 1.0, 1.0},
-		Vec3{0.5, 0.7, 1.0},
-		0.5*(1.0 + ray.Direction.Y))
+		Vec3{0.6, 0.8, 1.0},
+		0.5*(1.0+ray.Direction.Y))
 
 	return Mul(accAttenuation, skyColor)
 }
@@ -89,14 +89,14 @@ func RenderWorker(ctx context.Context, tasks <-chan Task, img *image.RGBA, width
 
 	for task := range tasks {
 		select {
-		case <- ctx.Done():
+		case <-ctx.Done():
 			return
 		default:
 			for x := 0; x < width; x++ {
 				accumColor := Vec3{}
 				for sampleNum := 0; sampleNum < spp; sampleNum++ {
-					u :=       (float64(x)      + Rand01(randSrc)) * invWidth // center value: (x + 0.5) / width; += -0.5...0.5 half-pixel scattering for multisampling
-					v := 1.0 - (float64(task.y) + Rand01(randSrc)) * invHeight
+					u := (float64(x) + Rand01(randSrc)) * invWidth // center value: (x + 0.5) / width; += -0.5...0.5 half-pixel scattering for multisampling
+					v := 1.0 - (float64(task.y)+Rand01(randSrc))*invHeight
 
 					ray := cam.GetRay(u, v)
 					accumColor.Add(TraceRay(sc, ray, maxBounces, randSrc))

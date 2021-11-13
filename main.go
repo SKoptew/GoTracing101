@@ -6,6 +6,7 @@ import (
 	. "gotracing101/math101"
 	"gotracing101/rendering"
 	"gotracing101/scene"
+	"math/rand"
 	"os/signal"
 
 	"flag"
@@ -26,22 +27,22 @@ func main() {
 		cancelFunc()
 	}()
 
-	go func(){
+	go func() {
 		select {
-		case <- termChan:
+		case <-termChan:
 			fmt.Println("rendering terminated")
 			cancelFunc()
-		case <- ctx.Done():
+		case <-ctx.Done():
 		}
 	}()
 
 	// setup rendering parameters
-	width, height, spp, maxBounces, fname := ParseFlags()
-	cam := CreateCamera(float64(width)/float64(height))
-	sc  := CreateTestScene()
+	width, height, spp, maxBounces, numObjects, fname := ParseFlags()
+	cam := CreateCamera(float64(width) / float64(height))
+	sc := CreateTestScene(numObjects)
 
 	// render image
-	fmt.Printf("rendering %vx%v image (%v samples per pixel, up to %v bounces)...\n", width, height, spp, maxBounces)
+	fmt.Printf("rendering %vx%v image (%v objects, %v samples per pixel, up to %v bounces)...\n", width, height, numObjects, spp, maxBounces)
 	startTime := time.Now()
 	img := rendering.RenderImage(ctx, sc, cam, width, height, spp, maxBounces)
 	fmt.Printf("done for %s\n", time.Since(startTime))
@@ -59,45 +60,103 @@ func main() {
 	}
 }
 
-func ParseFlags() (width, height, spp, maxBounces int, fname string) {
-	widthFlag      := flag.Int("width",  1024, "image width")
-	heightFlag     := flag.Int("height", 768, "image height")
-	sppFlag        := flag.Int("spp", 32, "samples per pixel")
+func ParseFlags() (width, height, spp, maxBounces, numObjects int, fname string) {
+	widthFlag := flag.Int("width", 960, "image width")
+	heightFlag := flag.Int("height", 540, "image height")
+	sppFlag := flag.Int("spp", 64, "samples per pixel")
 	maxBouncesFlag := flag.Int("bounces", 32, "max bounces per path")
-	fnameFlag      := flag.String("filename", "out", "out file name (without extension, forced to .png)")
+	numObjectsFlag := flag.Int("objnum", 24, "num of objects in test scene")
+	fnameFlag := flag.String("filename", "out", "out file name (without extension, forced to .png)")
 
 	flag.Parse()
 
-	width      = clamp(*widthFlag, 1, 4096)
-	height     = clamp(*heightFlag, 1, 4096)
-	spp        = clamp(*sppFlag, 1, 1024)
+	width = clamp(*widthFlag, 1, 4096)
+	height = clamp(*heightFlag, 1, 4096)
+	spp = clamp(*sppFlag, 1, 1024)
 	maxBounces = clamp(*maxBouncesFlag, 1, 512)
-	fname      = *fnameFlag + ".png"
+	numObjects = clamp(*numObjectsFlag, 0, 64)
+	fname = *fnameFlag + ".png"
 
 	return
 }
 
-func CreateTestScene() *scene.Scene {
+func CreateTestScene(numObjects int) *scene.Scene {
 	sc := scene.NewScene()
+	randSrc := rand.New(rand.NewSource(time.Now().Unix()))
 
-	matGround := material.NewMatLambertian(Vec3{0.1, 0.4, 0.1})
-	matRed    := material.NewMatLambertian(Color(250, 20, 20))
-	matMirror := material.NewMatReflective(Vec3{0.85,0.85,0.85}, 0.0)
-	matGold   := material.NewMatReflective(Vec3{0.8,0.6,0.2}, 0.025)
-	//matGlass  := material.NewMatRefractive(1.5, Vec3{1,1,1})
-	matGlow   := material.NewMatEmissive(Vec3{1,1,0.01}, 3.0)
+	// room
+	{
+		matGround := material.NewMatReflective(Vec3{0.5, 0.5, 0.5}, 0.005)
+		sc.Add(scene.NewSphere(Vec3{0, -51, -1}, 50.0, matGround))
 
-	sc.Add(scene.NewSphere(Vec3{ 0, -100.5, -1}, 100.0, matGround))
+		matCeiling := material.NewMatLambertian(Vec3{1, 1, 1})
+		sc.Add(scene.NewSphere(Vec3{0, 54, -1}, 50.0, matCeiling))
 
-	//sc.Add(scene.NewSphere(Vec3{ 0, 0, -1}, 0.5, matGlow))
-	//sc.Add(scene.NewSphere(Vec3{-1, 0, -1}, 0.5, matGlass))
-	//sc.Add(scene.NewSphere(Vec3{ 1, 0, -1}, 0.5, matGold))
+		matRight := material.NewMatReflective(Vec3{0.9, 0.05, 0.05}, 0)
+		sc.Add(scene.NewSphere(Vec3{29, 0, -1}, 25.0, matRight))
 
-	sc.Add(scene.NewCube(Vec3{ 1, 0,    -1.7}, 0.5, matRed))
-	sc.Add(scene.NewCube(Vec3{ 1, 1.25, -1.7}, 0.5, matMirror))
-	sc.Add(scene.NewCube(Vec3{-1, 0,    -1.7}, 0.5, matGlow))
-	sc.Add(scene.NewCube(Vec3{-1, 1.25, -1.7}, 0.5, matGold))
+		matLeft := material.NewMatReflective(Vec3{0.05, 0.9, 0.05}, 0)
+		sc.Add(scene.NewSphere(Vec3{-29, 0, -1}, 25.0, matLeft))
 
+		matBack := material.NewMatReflective(Vec3{0.5, 0.5, 0.5}, 0)
+		sc.Add(scene.NewSphere(Vec3{0, 0, -35}, 25.0, matBack))
+
+		matEmissiveRed := material.NewMatEmissive(Vec3{1, 0.9, 0.9}, 1.4)
+		sc.Add(scene.NewSphere(Vec3{26, -1, -25}, 25.0, matEmissiveRed))
+
+		matEmissiveGreen := material.NewMatEmissive(Vec3{0.9, 1.0, 0.9}, 1.4)
+		sc.Add(scene.NewSphere(Vec3{-26, -1, -25}, 25.0, matEmissiveGreen))
+	}
+
+	// random, not intersected spheres
+	{
+		const rad = 0.35
+		const diam2 = 4 * rad * rad
+
+		centers := make([]Vec3, numObjects)
+		for i := 0; i < numObjects; i++ {
+			for {
+				pt := Vec3{Rand(randSrc, -3, 3),
+					Rand(randSrc, -1+rad, 1.0),
+					Rand(randSrc, -2.5, -4.0)}
+
+				intersection := false
+				for j := 0; j < i; j++ {
+					v := Sub(centers[j], pt)
+					if v.Length2() < diam2 {
+						intersection = true
+						break
+					}
+				}
+
+				if !intersection {
+					centers[i] = pt
+					break
+				}
+			}
+		}
+
+		for _, center := range centers {
+			var mat material.Material
+
+			switch matType := randSrc.Intn(100); {
+			case matType < 70: // reflective material
+				albedo := Vec3{0.7, 0.7, 0.7}
+				switch c := randSrc.Intn(100); {
+				case c < 45:
+					albedo = Vec3{0.17, 0.24, 0.60}
+				case c < 90:
+					albedo = Vec3{0.7, 0.15, 0.06}
+				}
+				mat = material.NewMatReflective(albedo, 0)
+
+			default:
+				mat = material.NewMatRefractive(1.7, Vec3{0.95, 0.95, 0.95})
+			}
+
+			sc.Add(scene.NewSphere(center, rad, mat))
+		}
+	}
 	return sc
 }
 
@@ -106,7 +165,7 @@ func CreateCamera(aspect float64) *rendering.Camera {
 	cam.Set(
 		Vec3{X: 0, Y: 0, Z: 0},
 		Vec3{X: 0, Y: 0, Z: -1},
-		90.0)
+		60.0)
 
 	return cam
 }
