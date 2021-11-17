@@ -1,7 +1,7 @@
 package material
 
 import (
-	. "gotracing101/math101"
+	. "github.com/skoptew/gotracing101/math101"
 )
 
 type HitRecord struct {

@@ -1,7 +1,7 @@
 package material
 
 import (
-	. "gotracing101/math101"
+	. "github.com/skoptew/gotracing101/math101"
 	"math"
 	"math/rand"
 )
@@ -12,17 +12,17 @@ type Refractive struct {
 }
 
 func NewMatRefractive(ior float64, attenuation Vec3) Material {
-	return &Refractive {
-		ior: ior,
+	return &Refractive{
+		ior:         ior,
 		attenuation: attenuation,
 	}
 }
 
 func (mat *Refractive) Scatter(rayIn *Ray, hit *HitRecord, randSrc *rand.Rand) (attenuation Vec3, rayOut *Ray) {
-	VdotN   := Dot(rayIn.Direction, hit.Nrm)
+	VdotN := Dot(rayIn.Direction, hit.Nrm)
 	fresnel := getSchlickFresnelApprox(math.Abs(VdotN), mat.ior)
 
-	rayOut = &Ray{ Origin: hit.Pt }
+	rayOut = &Ray{Origin: hit.Pt}
 
 	if Rand01(randSrc) > fresnel {
 		ior := mat.ior
@@ -38,7 +38,7 @@ func (mat *Refractive) Scatter(rayIn *Ray, hit *HitRecord, randSrc *rand.Rand) (
 	return
 }
 
-func (mat *Refractive) Emitted(hit *HitRecord) (emitted Vec3) {
+func (mat *Refractive) Emitted(*HitRecord) (emitted Vec3) {
 	return Vec3{}
 }
 
@@ -46,5 +46,5 @@ func (mat *Refractive) Emitted(hit *HitRecord) (emitted Vec3) {
 func getSchlickFresnelApprox(cosine, ior float64) float64 {
 	r0 := (1 - ior) / (1 + ior)
 	r0 *= r0
-	return r0 + (1 - r0) * math.Pow(1 - cosine, 5)
+	return r0 + (1-r0)*math.Pow(1-cosine, 5)
 }

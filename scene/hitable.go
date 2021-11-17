@@ -1,8 +1,8 @@
 package scene
 
 import (
-	"gotracing101/material"
-	. "gotracing101/math101"
+	"github.com/skoptew/gotracing101/material"
+	. "github.com/skoptew/gotracing101/math101"
 )
 
 type Hitable interface {

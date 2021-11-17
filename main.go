@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"gotracing101/material"
-	. "gotracing101/math101"
-	"gotracing101/rendering"
-	"gotracing101/scene"
+	"github.com/skoptew/gotracing101/material"
+	. "github.com/skoptew/gotracing101/math101"
+	"github.com/skoptew/gotracing101/rendering"
+	"github.com/skoptew/gotracing101/scene"
 	"math/rand"
 	"os/signal"
 
@@ -32,7 +32,6 @@ func main() {
 		case <-termChan:
 			fmt.Println("rendering terminated")
 			cancelFunc()
-		case <-ctx.Done():
 		}
 	}()
 

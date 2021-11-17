@@ -1,8 +1,8 @@
 package scene
 
 import (
-	"gotracing101/material"
-	. "gotracing101/math101"
+	"github.com/skoptew/gotracing101/material"
+	. "github.com/skoptew/gotracing101/math101"
 	"math"
 )
 
@@ -17,15 +17,15 @@ func NewCube(center Vec3, side float64, material material.Material) Hitable {
 	d := side
 
 	return &Cube{
-		center: center,
-		pmin: Sub(center, Vec3{d, d, d}),
-		pmax: Add(center, Vec3{d, d, d}),
+		center:   center,
+		pmin:     Sub(center, Vec3{d, d, d}),
+		pmax:     Add(center, Vec3{d, d, d}),
 		material: material,
 	}
 }
 
 func (cube *Cube) Hit(ray *Ray, tMin float64, tMax float64) *material.HitRecord {
-	rayInvDir := Vec3{1/ray.Direction.X, 1/ray.Direction.Y, 1/ray.Direction.Z}
+	rayInvDir := Vec3{1 / ray.Direction.X, 1 / ray.Direction.Y, 1 / ray.Direction.Z}
 
 	// intersect ray with YZ planes
 	t0 := (cube.pmin.X - ray.Origin.X) * rayInvDir.X
@@ -54,7 +54,7 @@ func (cube *Cube) Hit(ray *Ray, tMin float64, tMax float64) *material.HitRecord 
 	if tMin >= tMax {
 		return nil
 	}
-	
+
 	// intersect with XY planes
 	t0 = (cube.pmin.Z - ray.Origin.Z) * rayInvDir.Z
 	t1 = (cube.pmax.Z - ray.Origin.Z) * rayInvDir.Z
@@ -83,7 +83,7 @@ func (cube *Cube) Hit(ray *Ray, tMin float64, tMax float64) *material.HitRecord 
 	default:
 		hitNrm = Vec3{0, 0, Sign(nrm.Z)}
 	}
-	
+
 	return &material.HitRecord{
 		T:   tMin,
 		Pt:  hitPoint,

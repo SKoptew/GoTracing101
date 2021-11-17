@@ -1,8 +1,8 @@
 package scene
 
 import (
-	"gotracing101/material"
-	. "gotracing101/math101"
+	"github.com/skoptew/gotracing101/material"
+	. "github.com/skoptew/gotracing101/math101"
 	"math"
 )
 
@@ -23,12 +23,11 @@ func NewSphere(center Vec3, radius float64, material material.Material) Hitable 
 	return &sphere
 }
 
-
 func (sphere *Sphere) Hit(ray *Ray, tMin float64, tMax float64) *material.HitRecord {
-	oc    := Sub(ray.Origin, sphere.center)
+	oc := Sub(ray.Origin, sphere.center)
 	halfB := Dot(ray.Direction, oc)
-	c     := Dot(oc, oc) - sphere.radius*sphere.radius
-	discr := halfB*halfB - c				// 1/4 * discriminant
+	c := Dot(oc, oc) - sphere.radius*sphere.radius
+	discr := halfB*halfB - c // 1/4 * discriminant
 
 	intersect := func(t float64) *material.HitRecord {
 		hitPoint := ray.GetPointAt(t)

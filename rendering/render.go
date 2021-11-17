@@ -2,8 +2,8 @@ package rendering
 
 import (
 	"context"
-	. "gotracing101/math101"
-	"gotracing101/scene"
+	. "github.com/skoptew/gotracing101/math101"
+	"github.com/skoptew/gotracing101/scene"
 	"image"
 	"image/color"
 	"math"

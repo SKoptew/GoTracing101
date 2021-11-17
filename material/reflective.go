@@ -1,7 +1,7 @@
 package material
 
 import (
-	. "gotracing101/math101"
+	. "github.com/skoptew/gotracing101/math101"
 	"math/rand"
 )
 
@@ -12,7 +12,7 @@ type Reflective struct {
 
 func NewMatReflective(albedo Vec3, fuzziness float64) Material {
 	return &Reflective{
-		albedo: albedo,
+		albedo:    albedo,
 		fuzziness: fuzziness,
 	}
 }
@@ -33,6 +33,6 @@ func (mat *Reflective) Scatter(rayIn *Ray, hit *HitRecord, randSrc *rand.Rand) (
 	return
 }
 
-func (mat *Reflective) Emitted(hit *HitRecord) (emitted Vec3) {
+func (mat *Reflective) Emitted(*HitRecord) (emitted Vec3) {
 	return Vec3{}
 }
